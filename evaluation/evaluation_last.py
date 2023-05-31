@@ -31,15 +31,7 @@ def evaluate_sessions(pr, metrics, test_data, train_data, items=None, session_ke
         (metric_name, value)
     
     '''
-    
-    actions = len(test_data)
-    sessions = len(test_data[session_key].unique())
     count = 0
-    print('START evaluation of ', actions, ' actions in ', sessions, ' sessions')
-    
-    sc = time.clock()
-    st = time.time()
-    
     time_sum = 0
     time_sum_clock = 0
     time_count = 0
@@ -53,10 +45,7 @@ def evaluate_sessions(pr, metrics, test_data, train_data, items=None, session_ke
     prev_iid, prev_sid = -1, -1
     
     for i in range(len(test_data)):
-        
-        if count % 1000 == 0:
-            print( '    eval process: ', count, ' of ', actions, ' actions: ', ( count / actions * 100.0 ), ' % in',(time.time()-st), 's')
-        
+
         sid = test_data[session_key].values[i]
         iid = test_data[item_key].values[i]
         ts = test_data[time_key].values[i]
@@ -67,7 +56,7 @@ def evaluate_sessions(pr, metrics, test_data, train_data, items=None, session_ke
                 if np.in1d(iid, items): items_to_predict = items
                 else: items_to_predict = np.hstack(([iid], items))  
                     
-            crs = time.clock();
+            crs = time.process_time();
             trs = time.time();
             
             next_session = test_data[session_key].values[i+1] if i+1 < len( test_data ) else -1
@@ -89,7 +78,7 @@ def evaluate_sessions(pr, metrics, test_data, train_data, items=None, session_ke
     #             preds += 1e-8 * np.random.rand(len(preds)) #Breaking up ties
                 preds.sort_values( ascending=False, inplace=True )
                 
-                time_sum_clock += time.clock()-crs
+                time_sum_clock += time.process_time()-crs
                 time_sum += time.time()-trs
                 time_count += 1
                 
@@ -99,9 +88,6 @@ def evaluate_sessions(pr, metrics, test_data, train_data, items=None, session_ke
         prev_iid = iid
         
         count += 1
-    
-    print( 'END evaluation in ', (time.clock()-sc), 'c / ', (time.time()-st), 's' )
-    print( '    avg rt ', (time_sum/time_count), 's / ', (time_sum_clock/time_count), 'c' )
 
     res = []
     for m in metrics:
